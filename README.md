@@ -10,7 +10,7 @@ Cette application permet d’utiliser quelques outils d’analyse technique, d�
 
 ### Comment l'utiliser ?
 
-D’abord, il vous faut télécharger la série financière sur Yahoo dans l’onglet __Série__. 
+D’abord, il vous faut lance le téléchargement de la série financière sur Yahoo dans l’onglet __Série__.  [__ICI__](https://fr.finance.yahoo.com/) vous trouverez les "symboles" des actifs qui vous voudrez étudier. 
 Puis vous trouvez les onglets suivants :  
 * __Analyse technique:__ Visualiser et explorer les principaux outils d’analyse techniques financière. 
 * __Analyse économétrie:__ Visualiser et explorer les principaux outils de l'économétrie pour les séries temporelles
