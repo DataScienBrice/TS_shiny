@@ -13,8 +13,8 @@ Cette application permet d’utiliser quelques outils d’analyse technique, d�
 D’abord, il vous faut télécharger la série financière sur Yahoo dans l’onglet __Série__. 
 Puis vous trouvez les onglets suivants :  
 * __Analyse technique:__ Visualiser et explorer les principaux outils d’analyse techniques financière. 
-* __Analyse économétrie:__ Oui des graphiques
-* __Prévisions:__ On fait des prévisions ici  
+* __Analyse économétrie:__ Visualiser et explorer les principaux outils de l'économétrie pour les séries temporelles
+* __Prévisions:__ Quelques modèles
 ### TODO : 
 
 | Sujets | Détail | 
