@@ -30,5 +30,5 @@ Puis vous trouvez les onglets suivants :
 
 ### Créateur 
 
-Brice Moiteaux, diplômé du master économétrie et statistiques appliquées de l’IAE de Nantes, vous pouvez me joindre à [_mon adresse_](moiteaux@gmail.com)
+Brice Moiteaux, diplômé du master économétrie et statistiques appliquées de l’IAE de Nantes, si vous avez des questions / remarques : vous pouvez me joindre à [_mon adresse_](moiteaux@gmail.com)
 
