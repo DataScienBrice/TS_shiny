@@ -16,19 +16,19 @@ Puis vous trouvez les onglets suivants :
 * __Analyse économétrie:__ Visualiser et explorer les principaux outils de l'économétrie pour les séries temporelles
 * __Prévisions:__ Quelques modèles
 ### TODO : 
+(_Pas un ordre_)
 
 | Sujets | Détail | 
 |----------|:-------------:|
 | __Volatilité__  | auto.garch, auto.Har, Har_Tree…  | 
-| __Modèles complexes__  | LSTM pré-entrainé, modèle à la Antoine Savine |
-| __Ajouter méthodes d’analyse techniques__  | Aaron, automatiser les stratégies comme pour MACD |
 | __Python__ | Mettre sur GitHub la version Python |
-| __alleger__ | Faire un package dédié |
+| __Alléger__ | Faire un package dédié |
 | __Outlier__ | ajouter des méthodes de détection d'outliers |
 | __Informer__ | Donner la version de chaque package |
+| __Modèles complexes__  | LSTM pré-entrainé, modèle à la Antoine Savine |
+| __Ajouter TA__  | Aaron, automatiser les stratégies comme pour MACD |
 
-
-### Créateur ?
+### Créateur 
 
 Brice Moiteaux, diplômé du master économétrie et statistiques appliquées de l’IAE de Nantes, vous pouvez me joindre à [_mon adresse_](moiteaux@gmail.com)
 
