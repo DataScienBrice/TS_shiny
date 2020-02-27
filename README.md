@@ -23,6 +23,10 @@ Puis vous trouvez les onglets suivants :
 | __Modèles complexes__  | LSTM pré-entrainé, modèle à la Antoine Savine |
 | __Ajouter méthodes d’analyse techniques__  | Aaron, automatiser les stratégies comme pour MACD |
 | __Python__ | Mettre sur GitHub la version Python |
+| __alleger__ | Faire un package dédié |
+| __Outlier__ | ajouter des méthodes de détection d'outliers |
+| __Informer__ | Donner la version de chaque package |
+
 
 ### Créateur ?
 
