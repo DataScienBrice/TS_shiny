@@ -28,6 +28,11 @@ library(nortest)
 library(ggpubr)
 library(formattable)
 library(aTSA)
+library(plyr)
+library(TSstudio)
+library(forecast)
+library(xts)
+
 
 #################
 # Fonction TA
@@ -413,57 +418,7 @@ RSI_plot = function(data, matype){
     return (p)
     
 }
-runmax_perso <- function (x, n = 10, cumulative = FALSE) {
-    x <- try.xts(x, error = as.matrix)
-    if (n < 1 || n > NROW(x)) 
-        stop(sprintf("n = %d is outside valid range: [1, %d]", 
-                     n, NROW(x)))
-    if (cumulative) {
-        NAs <- sum(is.na(x))
-        if (NAs > 0) {
-            if (any(is.na(x[-(1:NAs)]))) 
-                stop("Series contains non-leading NAs")
-            if (NAs + n > NROW(x)) 
-                stop("not enough non-NA values")
-        }
-        beg <- 1 + NAs
-        len <- NROW(x) - NAs
-        if (NCOL(x) > 1) {
-            stop("ncol(x) > 1. runMax only supports univariate 'x'")
-        }
-        result <- double(NROW(x))
-        result[beg:NROW(x)] <- cummax(x[beg:NROW(x)])
-        is.na(result) <- c(1:(n - 1 + NAs))
-    }
-    else {
-        result <- .Call("runmax", x, n, PACKAGE = "TTR")
-    }
-    reclass(result, x)
-}
-runmin_perso <- function (x, n = 10, cumulative = FALSE) {
-    x <- try.xts(x, error = as.matrix)
-    if (n < 1 || n > NROW(x)) 
-        stop(sprintf("n = %d is outside valid range: [1, %d]", 
-                     n, NROW(x)))
-    if (cumulative) {
-        NAs <- sum(is.na(x))
-        if (NAs > 0) {
-            if (any(is.na(x[-(1:NAs)]))) 
-                stop("Series contains non-leading NAs")
-            if (NAs + n > NROW(x)) 
-                stop("not enough non-NA values")
-        }
-        beg <- 1 + NAs
-        len <- NROW(x) - NAs
-        result <- double(NROW(x))
-        result[beg:NROW(x)] <- cummin(x[beg:NROW(x)])
-        is.na(result) <- c(1:(n - 1 + NAs))
-    }
-    else {
-        result <- .Call("runmin", x, n, PACKAGE = "TTR")
-    }
-    reclass(result, x)
-}
+
 WILLR_plot = function(data, n){
     
     
@@ -1370,24 +1325,88 @@ ui <- fluidPage(shinyUI(navbarPage("Application analyse financière",
                                            )), column(width = 12, 
                                                      
                                                      
-                                                      tableOutput("ea_table"),
+                                                      dataTableOutput("ea_table"),
                                                      plotlyOutput("ea_graph",  height = '600px', width = 'auto') %>% withSpinner(color=randomColor(1)),
                                                      plotOutput("ea_plot"))
-            
-            
-            
-            #--------------
-            # Prévision
-            
-            
-            
-        
-            
-            
-            
-            
+ 
             ),
-   tabPanel("Prévisions")
+   #--------------
+   # Prévision
+   
+   tabPanel("Prévisions",column(width = 12, 
+                                sidebarPanel(
+                                    selectInput("plotType_prev",
+                                                label = "Type de prévision :",
+                                                choices = c('Naïve' = "naive",
+                                                            'Lissages' = "smooth",
+                                                            'ARIMA(p,d,q)(P,D,Q)s'="arima",
+                                                            'Work In Progress'="wip"),
+                                                selected = "naive"),
+                                    sliderInput("test_size",
+                                                label = "Taille test :",
+                                                min=0, max = 100, value = 30),
+                                    sliderInput("freq_prev", "Fréquence de la série", min=1, max=365, value=242),
+                                    conditionalPanel(
+                                        condition = "input.plotType_prev == 'naive'",
+                                        selectInput("naive_choice",
+                                                    label = "Type de prévision naïve :",
+                                                    choices = c('Marche aléatoire' = "rw",
+                                                                'Naïve' = "naive",
+                                                                'Moyenne'="mean",
+                                                                'Naive saisonnière'="snaive"),
+                                                    selected = "rw")
+                                     
+                                        ), conditionalPanel(
+                                            condition = "input.plotType_prev == 'smooth'",
+                                            selectInput("smooth_choice",
+                                                        label = "Type de prévision lissée :",
+                                                        choices = c('Lissage simple exponnentielle' = "ses",
+                                                                    'Lissage exponnentielle de Holt' = "holt",
+                                                                    'Holt-Winters'="hw",
+                                                                    'Automatique'="auto"),
+                                                        selected = "ses")
+                                        ),
+                                    conditionalPanel(
+                                            condition = "input.smooth_choice == 'hw'",
+                                            selectInput("seasonal_hw",
+                                                        label = "Décomposition :",
+                                                        choices = c('Multiplicative' = "multiplicative",
+                                                                    'Additive' = "additive"),
+                                                        selected = "multiplicative"), 
+                                            p(em("Veuillez ne pas mettre une fréquence trop élevé s'il vous plait"))),
+                                    conditionalPanel(
+                                        condition = "input.plotType_prev == 'arima'",
+                                        selectInput("auto_arima",
+                                                    label = "Utiliser auto ARIMA :",
+                                                    choices = c('Oui' = "oui",
+                                                                'Non' = "non"),
+                                                    selected = "non"), 
+                                    conditionalPanel(
+                                        condition = "input.auto_arima == 'non'",
+                                        sliderInput("p",
+                                                    label = "p :",
+                                                    min = 0, max = 10, value = 0),
+                                        sliderInput("d",
+                                                    label = "d :",
+                                                    min = 0, max = 10, value = 0),
+                                        sliderInput("q",
+                                                    label = "q :",
+                                                    min = 0, max = 10, value = 0),
+                                        sliderInput("P",
+                                                    label = "P :",
+                                                    min = 0, max = 10, value = 0),
+                                        sliderInput("D",
+                                                    label = "D :",
+                                                    min = 0, max = 10, value = 0),
+                                        sliderInput("Q",
+                                                    label = "Q :",
+                                                    min = 0, max = 10, value = 0))
+                                    
+                                    ))
+                                ), column(width = 12,
+                                          dataTableOutput("prev_tab"), plotOutput("prev_plot"), plotOutput("arima1"),plotOutput("arima2")
+                                          )
+            )
    )
    ))
 
@@ -1611,7 +1630,8 @@ server <- function(input, output, session) {
             
         }
     })
-    output$ea_table <-renderTable({
+    output$ea_table <-renderDataTable({
+        
         dates_subset <- seq(as.Date(input$dates[1]), as.Date(input$dates[2]), "day")
         data <- window(dataInput(), dates_subset)
         if (input$plotType_ae == "info_data"){
@@ -1620,21 +1640,322 @@ server <- function(input, output, session) {
         colnames(data) <- c("Date","Open","High","Low","Close","Volume","Adjusted") 
         
         data$y <- data[,input$value]
-        table_distrib_info(data$y)
+        tab <- table_distrib_info(data$y)
+        
+        datatable(tab,
+                  colnames=c("Stat & tests",	"Value"), 
+                  rownames = F, options=list(pageLength=12))
         } else if (input$plotType_ae == "AR"){
-            
+            dates_subset <- seq(as.Date(input$dates[1]), as.Date(input$dates[2]), "day")
+            data <- window(dataInput(), dates_subset)
             data <- data.frame(Date=index(data),coredata(data))
             colnames(data) <- c("Date","Open","High","Low","Close","Volume","Adjusted") 
 
-            ts = ts(data[, input$value], start=input$dates[1], frequency = input$freq2)
-            stationary.test(ts, nlag = input$lag2, method = input$test_stationnarity)
+            tab <-stationary.test(data$Close, nlag = input$lag2, method = input$test_stationnarity)
+            
+            datatable(as.data.frame(tab),rownames = F)
 
             
             
         }
     })
+    
+    #-------------------
+    # Previsions sur données "brute"
+    output$prev_tab <-renderDataTable({
+        
+        dates_subset <- seq(as.Date(input$dates[1]), as.Date(input$dates[2]), "day")
+        data <- window(dataInput(), dates_subset)
+        data <- data.frame(Date=index(data),coredata(data))
+        colnames(data) <- c("Date","Open","High","Low","Close","Volume","Adjusted") 
+    
+        data$y <- data[,input$value]
+        ts_y <- ts(data$y, frequency = input$freq_prev)
+        
+        
+        test_len <- round(length(ts_y) *(input$test_size/100),0)
+        
+        
+        ts_y <- ts_split(ts_y, sample.out = test_len)
+        training <- ts_y$train
+        testing <- ts_y$test
+        
+        
+        if (input$plotType_prev == "naive"){
+            
+            if(input$naive_choice =="rw"){
+                random_walk_forecast = rwf(training, h =test_len,drift = T) 
+                pred <- random_walk_forecast$mean
+                
+            data.frame("Metriques" = c("ME"  ,   "RMSE"   ,   "MAE"   ,    "MPE"   ,  "MAPE"   ,   "ACF1", "Theil's U")
+                       , "Valeurs" = c( accuracy(testing,pred)))
+                          
+                
+            }
+            else if(input$naive_choice =="naive"){
+                naive = naive(training, h =test_len) 
+                pred <- naive$mean
+                
+                data.frame("Metriques" = c("ME"  ,   "RMSE"   ,   "MAE"   ,    "MPE"   ,  "MAPE"   ,   "ACF1", "Theil's U")
+                           , "Valeurs" = c( accuracy(testing,pred)))
+                
+                
+            }else if(input$naive_choice =="mean"){
+                mean = meanf(training, h =test_len) 
+                pred <- mean$mean
+                
+                data.frame("Metriques" = c("ME"  ,   "RMSE"   ,   "MAE"   ,    "MPE"   ,  "MAPE"   ,   "ACF1", "Theil's U")
+                           , "Valeurs" = c( accuracy(testing,pred)))
+                
+            }else if(input$naive_choice =="snaive"){
+                snaive = snaive(training, h =test_len) 
+                pred <- snaive$mean
+                
+                data.frame("Metriques" = c("ME"  ,   "RMSE"   ,   "MAE"   ,    "MPE"   ,  "MAPE"   ,   "ACF1", "Theil's U")
+                           , "Valeurs" = c( accuracy(testing,pred)))
+            
+            
 
+            }
+        }else if (input$plotType_prev == "smooth"){
+            if (input$smooth_choice =="ses"){
+                
+                fit_ses <- ses(training, h =test_len )
+                pred <- fit_ses$mean
+                
+                data.frame("Metriques" = c("ME"  ,   "RMSE"   ,   "MAE"   ,    "MPE"   ,  "MAPE"   ,   "ACF1", "Theil's U")
+                           , "Valeurs" = c( accuracy(testing,pred))) 
+                
+            } else if (input$smooth_choice =="holt"){
+                
+                fit_ses <- holt(training, h =test_len )
+                pred <- fit_ses$mean
+                
+                data.frame("Metriques" = c("ME"  ,   "RMSE"   ,   "MAE"   ,    "MPE"   ,  "MAPE"   ,   "ACF1", "Theil's U")
+                           , "Valeurs" = c( accuracy(testing,pred))) 
+                
+            } else if (input$smooth_choice =="hw"){
+                
+                fit_ses <- hw(training, h =test_len, seasonal = input$seasonal_hw )
+                pred <- fit_ses$mean
+                
+                data.frame("Metriques" = c("ME"  ,   "RMSE"   ,   "MAE"   ,    "MPE"   ,  "MAPE"   ,   "ACF1", "Theil's U")
+                           , "Valeurs" = c( accuracy(testing,pred))) 
+                
+            } else if (input$smooth_choice =="auto"){
+                
+                fit_ses <- forecast(training, h =test_len )
+                pred <- fit_ses$mean
+                
+                data.frame("Metriques" = c("ME"  ,   "RMSE"   ,   "MAE"   ,    "MPE"   ,  "MAPE"   ,   "ACF1", "Theil's U")
+                           , "Valeurs" = c( accuracy(testing,pred))) 
+                
+            }
+    
 
+                          
+            
+        }else if (input$plotType_prev == "arima"){ 
+         if (input$auto_arima == "oui"){
+
+            fit <- auto.arima(training )
+            pred <- forecast(fit, h=test_len)    
+            pred <- pred$mean
+            data.frame("Metriques" = c("ME"  ,   "RMSE"   ,   "MAE"   ,    "MPE"   ,  "MAPE"   ,   "ACF1", "Theil's U")
+                       , "Valeurs" = c( accuracy(testing,pred))) 
+                
+        } else if (input$auto_arima == "non"){
+            fit <- Arima(y = training, order = c(input$p, input$d, input$q), seasonal = c(input$P, input$D, input$Q))
+            pred <- forecast(fit, h=test_len)    
+            pred <- pred$mean
+            data.frame("Metriques" = c("ME"  ,   "RMSE"   ,   "MAE"   ,    "MPE"   ,  "MAPE"   ,   "ACF1", "Theil's U")
+                       , "Valeurs" = c( accuracy(testing,pred))) 
+            }
+        }
+        
+        
+    })
+    output$prev_plot <- renderPlot({
+        
+        
+        dates_subset <- seq(as.Date(input$dates[1]), as.Date(input$dates[2]), "day")
+        data <- window(dataInput(), dates_subset)
+        data <- data.frame(Date=index(data),coredata(data))
+        colnames(data) <- c("Date","Open","High","Low","Close","Volume","Adjusted") 
+        
+        data$y <- data[,input$value]
+        ts_y <- ts(data$y, frequency = input$freq_prev)
+        
+        
+        test_len <- round(length(ts_y) *(input$test_size/100),0)
+        
+        
+        ts_y <- ts_split(ts_y, sample.out = test_len)
+        training <- ts_y$train
+        testing <- ts_y$test
+        
+        
+        if (input$plotType_prev == "naive"){
+            
+            if(input$naive_choice =="rw"){
+                model = rwf(training, h =test_len,drift = T)
+                plot(model)
+                
+                
+            }
+            else if(input$naive_choice =="naive"){
+                model = naive(training, h =test_len) 
+
+                
+                plot(model)
+                
+                
+            }else if(input$naive_choice =="mean"){
+                model = meanf(training, h =test_len) 
+           
+                
+                plot(model)
+                
+            }else if(input$naive_choice =="snaive"){
+                model = snaive(training, h =test_len) 
+                
+                
+                plot(model)
+                
+                
+                
+            }
+        } else if (input$plotType_prev == "smooth"){
+            if (input$smooth_choice =="ses"){
+                
+                model <- ses(training, h =test_len )
+                plot(model)
+                
+            } else if (input$smooth_choice =="holt"){
+                
+                model <- holt(training, h =test_len )
+                plot(model)
+                
+            } else if (input$smooth_choice =="hw"){
+                
+                model <- hw(training, h =test_len, seasonal = input$seasonal_hw )
+                plot(model)
+                
+            } else if (input$smooth_choice =="auto"){
+                
+                model <- forecast(training, h =test_len )
+                plot(model)
+            }
+            
+            
+            
+            
+        }
+        else if (input$plotType_prev == "arima"){
+         if (input$auto_arima == "oui"){
+            
+            fit <- auto.arima(training )
+            pred <- forecast(fit, h=test_len)   
+
+             plot(pred)
+
+            
+            
+        } else if (input$auto_arima == "non"){
+            fit <- Arima(y = training, order = c(input$p, input$d, input$q), seasonal = c(input$P, input$D, input$Q))
+            pred <- forecast(fit, h=test_len)
+   
+            plot(pred)
+
+            
+            
+        }}
+        
+    })
+    output$arima1 <- renderPlot({
+        
+        
+        dates_subset <- seq(as.Date(input$dates[1]), as.Date(input$dates[2]), "day")
+        data <- window(dataInput(), dates_subset)
+        data <- data.frame(Date=index(data),coredata(data))
+        colnames(data) <- c("Date","Open","High","Low","Close","Volume","Adjusted") 
+        
+        data$y <- data[,input$value]
+        ts_y <- ts(data$y, frequency = input$freq_prev)
+        
+        
+        test_len <- round(length(ts_y) *(input$test_size/100),0)
+        
+        
+        ts_y <- ts_split(ts_y, sample.out = test_len)
+        training <- ts_y$train
+        testing <- ts_y$test
+         if (input$plotType_prev == "arima"){
+        if (input$auto_arima == "oui"){
+            
+            fit <- auto.arima(training )
+            pred <- forecast(fit, h=test_len)   
+            
+            checkresiduals(fit)
+         
+            
+            
+        } else if (input$auto_arima == "non"){
+            fit <- Arima(y = training, order = c(input$p, input$d, input$q), seasonal = c(input$P, input$D, input$Q))
+            pred <- forecast(fit, h=test_len)
+            
+           
+            checkresiduals(fit)
+          
+            
+            
+        }} else {}
+        
+        
+    })
+    output$arima2 <- renderPlot({
+        
+    
+        dates_subset <- seq(as.Date(input$dates[1]), as.Date(input$dates[2]), "day")
+        data <- window(dataInput(), dates_subset)
+        data <- data.frame(Date=index(data),coredata(data))
+        colnames(data) <- c("Date","Open","High","Low","Close","Volume","Adjusted") 
+        
+        data$y <- data[,input$value]
+        ts_y <- ts(data$y, frequency = input$freq_prev)
+        
+        
+        test_len <- round(length(ts_y) *(input$test_size/100),0)
+        
+        
+        ts_y <- ts_split(ts_y, sample.out = test_len)
+        training <- ts_y$train
+        testing <- ts_y$test
+        
+         if (input$plotType_prev == "arima"){
+        if (input$auto_arima == "oui"){
+            
+            fit <- auto.arima(training )
+            pred <- forecast(fit, h=test_len)   
+            
+            autoplot(fit)
+            
+            
+            
+        } 
+             if (input$auto_arima == "non"){
+            fit <- Arima(y = training, order = c(input$p, input$d, input$q), seasonal = c(input$P, input$D, input$Q))
+            pred <- forecast(fit, h=test_len)
+            
+            
+            autoplot(fit)
+            
+            
+            
+        }} else {}
+        
+        
+    })
 }
 
 shinyApp(ui, server)
