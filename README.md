@@ -14,19 +14,21 @@ D’abord, il vous faut télécharger la série financière sur Yahoo dans l’o
 Puis vous trouvez les onglets suivants :  
 * __Analyse technique:__ Visualiser et explorer les principaux outils d’analyse techniques financière. 
 * __Analyse économétrie:__ Visualiser et explorer les principaux outils de l'économétrie pour les séries temporelles
-* __Prévisions:__ Quelques modèles
+* __Prévisions:__ Quelques modèles (WIP)
+
 ### TODO : 
 (_Pas un ordre_)
 
 | Sujets | Détail | 
 |----------|:-------------:|
-| __Volatilité__  | auto.garch, auto.Har, Har_Tree…  | 
+| __Volatilité__  | auto.garch, auto.Har, Har_Tree… et VaR | 
 | __Python__ | Mettre sur GitHub la version Python |
 | __Alléger__ | Faire un package dédié |
 | __Outlier__ | ajouter des méthodes de détection d'outliers |
 | __Informer__ | Donner la version de chaque package |
 | __Modèles complexes__  | LSTM pré-entrainé, modèle à la Antoine Savine |
 | __Ajouter TA__  | Aaron, automatiser les stratégies comme pour MACD |
+|__Sortie__| Permetre de faire des sorties en pdf ou powerpoint (mardown, officer)|
 
 ### Créateur 
 
