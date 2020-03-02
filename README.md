@@ -10,7 +10,7 @@ Cette application permet d’utiliser quelques outils d’analyse technique, d�
 
 ### Comment l'utiliser ?
 
-D’abord, il vous faut lance le téléchargement de la série financière sur Yahoo dans l’onglet __Série__.  [__ICI__](https://fr.finance.yahoo.com/) vous trouverez les "symboles" des actifs qui vous voudrez étudier. 
+D’abord, il vous faut lancer le téléchargement de la série financière sur Yahoo dans l’onglet __données__.  [__ICI__](https://fr.finance.yahoo.com/) vous trouverez les "symboles" des actifs qui vous voudrez étudier. 
 Puis vous trouvez les onglets suivants :  
 * __Analyse technique:__ Visualiser et explorer les principaux outils d’analyse techniques financière. 
 * __Analyse économétrie:__ Visualiser et explorer les principaux outils de l'économétrie pour les séries temporelles
@@ -28,7 +28,7 @@ Puis vous trouvez les onglets suivants :
 | __Informer__ | Donner la version de chaque package |
 | __Modèles complexes__  | LSTM pré-entrainé, modèle à la Antoine Savine |
 | __Ajouter TA__  | Aaron, automatiser les stratégies comme pour MACD |
-|__Sortie__| Permetre de faire des sorties en pdf ou powerpoint (mardown, officer)|
+|__Sortie__| Permetre de faire des sorties en pdf ou powerpoint (Rmardown, officeR)|
 
 ### Créateur 
 
